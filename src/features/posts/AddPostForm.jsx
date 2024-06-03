@@ -1,50 +1,65 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { postAdded } from "./PostsSlice";
-import { nanoid } from "@reduxjs/toolkit";
+import { getAllUsers } from "../users/usersSlice";
 
 export default function AddPostForm() {
+	const users = useSelector(getAllUsers);
+
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
+	const [userId, setUserId] = useState("");
 	const dispatch = useDispatch();
 
+	const canSave = title && content && userId;
+
 	const onSavePostClicked = () => {
-		if (!title || !content) return;
+		if (!canSave) return;
 
-		dispatch(
-			postAdded({
-				title,
-				content,
-				id: nanoid(),
-			})
-		);
-
+		dispatch(postAdded(title, content, userId));
 		setContent("");
 		setTitle("");
 	};
+
+	const userOptions = users.map((user) => (
+		<option key={user.id} value={user.id}>
+			{user.name}
+		</option>
+	));
 
 	return (
 		<section>
 			<h2>Add a new Post</h2>
 			<form>
-				<label htmlFor="postTitle">Post Title:</label>
-				<input
-					id="postTitle"
-					name="postTitle"
-					type="text"
-					value={title}
-					onChange={(e) => setTitle(e.target.value)}
-				/>
+				<div>
+					<label htmlFor="postTitle">Post Title:</label>
+					<input
+						id="postTitle"
+						name="postTitle"
+						type="text"
+						value={title}
+						onChange={(e) => setTitle(e.target.value)}
+					/>
+				</div>
 
-				<label htmlFor="postContent">Post Content:</label>
-				<textarea
-					id="postContent"
-					name="postContent"
-					value={content}
-					onChange={(e) => setContent(e.target.value)}
-				/>
+				<div>
+					<label htmlFor="postAuthor">Post Author:</label>
+					<select value={userId} onChange={(e) => setUserId(e.target.value)}>
+						<option value="">Select author</option>
+						{userOptions}
+					</select>
+				</div>
 
-				<button type="button" onClick={onSavePostClicked}>
+				<div>
+					<label htmlFor="postContent">Post Content:</label>
+					<textarea
+						id="postContent"
+						name="postContent"
+						value={content}
+						onChange={(e) => setContent(e.target.value)}
+					/>
+				</div>
+				<button type="button" onClick={onSavePostClicked} disabled={!canSave}>
 					Save post
 				</button>
 			</form>
